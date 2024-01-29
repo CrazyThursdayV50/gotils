@@ -2,6 +2,7 @@ package compare
 
 import (
 	"gotils/pkg/slice"
+	"slices"
 )
 
 func (c Comparer[E, T]) Slice() slice.Slice[E] {
@@ -17,4 +18,20 @@ func (c Comparer[E, T]) Has(element E) (ok bool) {
 		return true
 	})
 	return
+}
+
+func (c Comparer[E, T]) Sort() {
+	slices.SortFunc(c, func(a, b E) int {
+		be := b.Element()
+
+		if a.Equal(be) {
+			return 0
+		}
+
+		if a.LessThan(be) {
+			return -1
+		}
+
+		return 1
+	})
 }

@@ -8,11 +8,11 @@ func (s Slice[E]) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (s *Slice[E]) Append(e E) {
+func (s *Slice[E]) Append(elements ...E) {
 	if s == nil {
 		return
 	}
-	*s = append(*s, e)
+	*s = append(*s, elements...)
 }
 
 func (s Slice[E]) IterFunc(f func(E) bool) {

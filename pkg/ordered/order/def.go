@@ -2,7 +2,7 @@ package order
 
 import (
 	"cmp"
-	"gotils/pkg/slice/ordered"
+	"gotils/pkg/ordered"
 )
 
 var _ ordered.Ordered[int] = New(0)
