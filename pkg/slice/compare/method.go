@@ -9,6 +9,10 @@ func (c Comparer[E, T]) Slice() slice.Slice[E] {
 	return slice.Slice[E](c)
 }
 
+func (c Comparer[E, T]) Len() int           { return c.Slice().Len() }
+func (c Comparer[E, T]) Swap(i, j int)      { c.Slice().Swap(i, j) }
+func (c Comparer[E, T]) Less(i, j int) bool { return c[i].LessThan(c[j].Element()) }
+
 func (c Comparer[E, T]) Has(element E) (ok bool) {
 	c.Slice().IterFunc(func(e E) bool {
 		if e.Equal(element.Element()) {
