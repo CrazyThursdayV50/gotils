@@ -23,3 +23,9 @@ func (s Slice[E]) IterFunc(f func(E) bool) {
 		}
 	}
 }
+
+func (s Slice[E]) IterFuncFully(f func(E)) {
+	for _, e := range s {
+		f(e)
+	}
+}
