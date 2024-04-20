@@ -3,13 +3,14 @@ package worker
 import (
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
 	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 )
 
 type Worker[J any] struct {
 	*monitor.Monitor
 	do       func(J)
 	count    int64
-	trigger  chan J
+	trigger  api.ChanAPI[J]
 	graceful bool
 }
 
@@ -22,11 +23,11 @@ func (m *Worker[J]) onJob() {
 					return
 				}
 
-				if len(m.trigger) == 0 {
+				if m.trigger.IsEmpty() {
 					return
 				}
 
-			case job := <-m.trigger:
+			case job := <-m.trigger.Chan():
 				m.do(job)
 			}
 		}

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
+	gchan "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/chan"
 )
 
 func (w *Worker[J]) WithContext(ctx context.Context) {
@@ -15,7 +17,11 @@ func (w *Worker[J]) WithGraceful(ok bool) {
 }
 
 func (w *Worker[J]) WithBuffer(buffer int) {
-	w.trigger = make(chan J, buffer)
+	w.trigger = gchan.New[J](buffer)
+}
+
+func (w *Worker[J]) WithTrigger(trigger api.ChanAPI[J]) {
+	w.trigger = trigger
 }
 
 func (m *Worker[J]) Run() {
@@ -33,6 +39,6 @@ func (m *Worker[J]) Delivery(job J) {
 		return
 
 	default:
-		m.trigger <- job
+		m.trigger.Send(job)
 	}
 }

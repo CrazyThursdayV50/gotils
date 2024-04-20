@@ -1,11 +1,19 @@
 package models
 
-import "sync"
+import (
+	"sync"
+	"time"
+
+	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
+	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
+)
 
 type Chan[E any] struct {
-	l    *sync.Mutex
-	done chan struct{}
-	c    chan E
+	l           *sync.Mutex
+	done        chan struct{}
+	recvTimeout time.Duration
+	sendTimeout time.Duration
+	c           chan E
 }
 
 func FromChan[E any](c chan E) *Chan[E] {
@@ -40,15 +48,37 @@ func (c *Chan[E]) Close() {
 	close(c.done)
 }
 
-func (c *Chan[E]) Receive() E {
-	return <-c.c
+func (c *Chan[E]) Receive() (wrapper.UnWrapper[E], bool) {
+	if c.recvTimeout <= 0 {
+		element := <-c.c
+		return wrap.Wrap(element), true
+	}
+
+	timer := time.NewTimer(c.recvTimeout)
+	select {
+	case element := <-c.c:
+		return wrap.Wrap(element), true
+
+	case <-timer.C:
+		return nil, false
+	}
 }
 
 func (c *Chan[E]) Send(e E) {
 	if c.Closed() {
 		return
 	}
-	c.c <- e
+
+	if c.sendTimeout <= 0 {
+		c.c <- e
+		return
+	}
+
+	timer := time.NewTimer(c.sendTimeout)
+	select {
+	case <-timer.C:
+	case c.c <- e:
+	}
 }
 
 func (c *Chan[E]) Chan() chan E {
@@ -99,4 +129,9 @@ func (c *Chan[E]) RenewForce(buff int) {
 	if c.Closed() {
 		c.done = make(chan struct{})
 	}
+}
+
+func (c *Chan[E]) Timeout(send, recv time.Duration) {
+	c.sendTimeout = send
+	c.recvTimeout = recv
 }
