@@ -5,6 +5,7 @@ import (
 
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/models"
+	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 )
 
 func From[E any](sli []E) api.SliceAPI[E] {
@@ -20,6 +21,19 @@ func Collect[E any, T any](sli []E, collector func(E) T) api.SliceAPI[T] {
 	dst := models.MakeSlice[T](0, src.Len())
 	src.IterFuncFully(func(e E) {
 		dst.Append(collector(e))
+	})
+	return dst
+}
+
+func CollectValid[E any, T any](sli []E, collector func(E) (wrapper.UnWrapper[T], bool)) api.SliceAPI[T] {
+	src := models.FromSlice(sli)
+	dst := models.MakeSlice[T](0, src.Len())
+	src.IterFuncFully(func(e E) {
+		w, ok := collector(e)
+		if !ok {
+			return
+		}
+		dst.Append(w.Unwrap())
 	})
 	return dst
 }
