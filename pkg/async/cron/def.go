@@ -5,15 +5,17 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
-	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
+	"github.com/CrazyThursdayV50/gotils/pkg/async/worker"
 )
 
 type Cron struct {
-	*monitor.Monitor
+	ctx          context.Context
+	job          func()
 	runAfter     time.Duration
 	waitAfterRun bool
 	tick         time.Duration
-	trigger      func()
+	worker       *worker.Worker[time.Time]
+	runOnStart   func()
 }
 
 type Option func(*Cron)
@@ -21,30 +23,39 @@ type Option func(*Cron)
 func defaultOptions() []Option {
 	return []Option{
 		WithContext(context.TODO()),
-		WithTrigger(func() {}, time.Minute),
+		WithJob(func() {}, time.Minute),
 		WithRunAfterStart(-1),
 		WithWaitAfterRun(false),
 	}
 }
 
-func (c *Cron) start() {
+func timerDo(duration time.Duration, done <-chan struct{}, do func()) {
+	var timer = time.NewTimer(duration)
+	select {
+	case <-done:
+		return
+	case <-timer.C:
+		do()
+	}
+}
+
+func (c *Cron) init() {
+	c.worker = worker.New(func(time.Time) { c.job() })
+	c.worker.WithContext(c.ctx)
+	c.worker.WithGraceful(false)
+	c.worker.WithBuffer(0)
+
 	if c.runAfter < 0 {
 		return
 	}
 
+	var do = func() { c.worker.Delivery(time.Now()) }
 	if c.runAfter == 0 {
-		c.trigger()
+		c.runOnStart = do
 		return
 	}
 
-	ticker := time.NewTicker(c.runAfter)
-	select {
-	case <-c.Done():
-		return
-
-	case <-ticker.C:
-		c.trigger()
-	}
+	c.runOnStart = func() { timerDo(c.runAfter, c.worker.Done(), do) }
 }
 
 func (c *Cron) tickRun() {
@@ -52,16 +63,15 @@ func (c *Cron) tickRun() {
 	goo.Go(func() {
 		for {
 			select {
-			case <-c.Done():
+			case <-c.worker.Done():
 				return
 
-			case <-ticker.C:
+			case t := <-ticker.C:
 				select {
-				case <-c.Done():
+				case <-c.worker.Done():
 				default:
-					c.trigger()
+					c.worker.Delivery(t)
 				}
-
 			}
 		}
 	})
@@ -72,14 +82,14 @@ func (c *Cron) timerRun() {
 	goo.Go(func() {
 		for {
 			select {
-			case <-c.Done():
+			case <-c.worker.Done():
 				return
 
-			case <-timer.C:
+			case t := <-timer.C:
 				select {
-				case <-c.Done():
+				case <-c.worker.Done():
 				default:
-					c.trigger()
+					c.worker.Delivery(t)
 					timer.Stop()
 					timer.Reset(c.tick)
 				}

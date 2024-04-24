@@ -22,7 +22,7 @@ func TestAsync(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	ch := gchan.New[*testData](0)
+	ch := gchan.Make[*testData](0)
 	conf := consumer.NewConfig[*testData]("")
 	conf.SetChannel(ch)
 	conf.SetContext(ctx)

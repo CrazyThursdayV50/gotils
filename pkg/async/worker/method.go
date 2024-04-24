@@ -17,7 +17,7 @@ func (w *Worker[J]) WithGraceful(ok bool) {
 }
 
 func (w *Worker[J]) WithBuffer(buffer int) {
-	w.trigger = gchan.New[J](buffer)
+	w.trigger = gchan.Make[J](buffer)
 }
 
 func (w *Worker[J]) WithTrigger(trigger api.ChanAPI[J]) {
@@ -25,8 +25,8 @@ func (w *Worker[J]) WithTrigger(trigger api.ChanAPI[J]) {
 }
 
 func (m *Worker[J]) Run() {
-	m.Monitor.Run()
 	m.onJob()
+	m.Monitor.Run()
 }
 
 func (m *Worker[J]) Stop() { m.Monitor.Stop() }

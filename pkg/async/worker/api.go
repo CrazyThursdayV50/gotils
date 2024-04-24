@@ -12,7 +12,7 @@ func New[J any](do func(J)) *Worker[J] {
 		do(j)
 		m.count++
 	}
-	m.trigger = gchan.New[J](0)
+	m.trigger = gchan.Make[J](0)
 	m.WithContext(context.TODO())
 	return &m
 }

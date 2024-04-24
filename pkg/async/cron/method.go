@@ -1,18 +1,9 @@
 package cron
 
-import (
-	"context"
-
-	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
-)
-
-func (c *Cron) WithContext(ctx context.Context) {
-	c.Monitor = monitor.New(ctx)
-}
-
 func (c *Cron) Run() {
-	c.Monitor.Run()
-	c.start()
+	c.init()
+	c.worker.Run()
+	c.runOnStart()
 	if c.waitAfterRun {
 		c.timerRun()
 	} else {
@@ -20,6 +11,7 @@ func (c *Cron) Run() {
 	}
 }
 
-func (c *Cron) Stop() {
-	c.Monitor.Stop()
-}
+func (c *Cron) Stop()                 { c.worker.Stop() }
+func (c *Cron) OnStart(f func())      { c.worker.OnStart(f) }
+func (c *Cron) OnExit(f func())       { c.worker.OnExit(f) }
+func (c *Cron) Done() <-chan struct{} { return c.worker.Done() }

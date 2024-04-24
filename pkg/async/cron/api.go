@@ -4,26 +4,25 @@ import (
 	"context"
 	"time"
 
-	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api/slice"
 )
 
 func New(opts ...Option) *Cron {
-	opts = append(defaultOptions(), opts...)
 	var c Cron
+	opts = append(defaultOptions(), opts...)
 	slice.From(opts).IterFuncFully(func(opt Option) { opt(&c) })
 	return &c
 }
 
 func WithContext(ctx context.Context) Option {
 	return func(c *Cron) {
-		c.Monitor = monitor.New(ctx)
+		c.ctx = ctx
 	}
 }
 
-func WithTrigger(t func(), tick time.Duration) Option {
+func WithJob(job func(), tick time.Duration) Option {
 	return func(c *Cron) {
-		c.trigger = t
+		c.job = job
 		c.tick = tick
 	}
 }

@@ -28,7 +28,7 @@ func (b *Leader[J]) AddWorker(worker *worker.Worker[J]) {
 func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Leader[J] {
 	var bucket Leader[J]
 	bucket.ctx = ctx
-	bucket.deliveryChan = gchan.New[J](0)
+	bucket.deliveryChan = gchan.Make[J](0)
 	bucket.deliveryChan.Timeout(sendTimeout, recvTimeout)
 	return &bucket
 }
