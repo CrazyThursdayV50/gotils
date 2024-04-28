@@ -46,6 +46,7 @@ func (c *Chan[E]) Close() {
 		return
 	}
 	close(c.done)
+	close(c.c)
 }
 
 func (c *Chan[E]) Receive() (wrapper.UnWrapper[E], bool) {
