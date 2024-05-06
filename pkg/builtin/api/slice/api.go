@@ -16,7 +16,7 @@ func Make[E any](len, cap int) api.SliceAPI[E] {
 	return models.MakeSlice[E](len, cap)
 }
 
-func Collect[E any, T any](sli []E, collector func(E) T) api.SliceAPI[T] {
+func Collect[E any, T any](sli []E, collector func(element E) T) api.SliceAPI[T] {
 	src := models.FromSlice(sli)
 	dst := models.MakeSlice[T](0, src.Len())
 	src.IterFuncFully(func(e E) {
