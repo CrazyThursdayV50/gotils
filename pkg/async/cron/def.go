@@ -15,6 +15,7 @@ type Cron struct {
 	waitAfterRun bool
 	tick         time.Duration
 	worker       *worker.Worker[time.Time]
+	delivery     func(time.Time)
 	runOnStart   func()
 }
 
@@ -30,7 +31,7 @@ func defaultOptions() []Option {
 }
 
 func timerDo(duration time.Duration, done <-chan struct{}, do func()) {
-	var timer = time.NewTimer(duration)
+	timer := time.NewTimer(duration)
 	select {
 	case <-done:
 		return
@@ -40,7 +41,7 @@ func timerDo(duration time.Duration, done <-chan struct{}, do func()) {
 }
 
 func (c *Cron) init() {
-	c.worker = worker.New(func(time.Time) { c.job() })
+	c.worker, c.delivery = worker.New(func(time.Time) { c.job() })
 	c.worker.WithContext(c.ctx)
 	c.worker.WithGraceful(false)
 	c.worker.WithBuffer(0)
@@ -49,7 +50,7 @@ func (c *Cron) init() {
 		return
 	}
 
-	var do = func() { c.worker.Delivery(time.Now()) }
+	do := func() { c.delivery(time.Now()) }
 	if c.runAfter == 0 {
 		c.runOnStart = do
 		return
@@ -70,7 +71,7 @@ func (c *Cron) tickRun() {
 				select {
 				case <-c.worker.Done():
 				default:
-					c.worker.Delivery(t)
+					c.delivery(t)
 				}
 			}
 		}
@@ -89,7 +90,7 @@ func (c *Cron) timerRun() {
 				select {
 				case <-c.worker.Done():
 				default:
-					c.worker.Delivery(t)
+					c.delivery(t)
 					timer.Stop()
 					timer.Reset(c.tick)
 				}

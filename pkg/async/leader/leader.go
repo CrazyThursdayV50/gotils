@@ -29,6 +29,7 @@ func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Le
 	var bucket Leader[J]
 	bucket.ctx = ctx
 	bucket.deliveryChan = gchan.Make[J](0)
-	bucket.deliveryChan.Timeout(sendTimeout, recvTimeout)
+	bucket.deliveryChan.SendTimeout(sendTimeout)
+	bucket.deliveryChan.RecvTimeout(recvTimeout)
 	return &bucket
 }

@@ -17,8 +17,10 @@ func TestLeader(t *testing.T) {
 		t.Logf("id[2]: %d\n", id)
 	}
 
-	leader.AddWorker(worker.New[int](handler1))
-	leader.AddWorker(worker.New[int](handler2))
+	w1, _ := worker.New[int](handler1)
+	w2, _ := worker.New[int](handler2)
+	leader.AddWorker(w1)
+	leader.AddWorker(w2)
 	for id := range make([]int, 100) {
 		leader.Do(id)
 	}

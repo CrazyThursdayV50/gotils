@@ -10,26 +10,31 @@ type Worker[J any] struct {
 	*monitor.Monitor
 	do       func(J)
 	count    int64
-	trigger  api.ChanAPI[J]
+	trigger  api.ChanAPIR[J]
 	graceful bool
 }
 
-func (m *Worker[J]) onJob() {
-	goo.Go(func() {
-		for {
-			select {
-			case <-m.Done():
-				if !m.graceful {
-					return
-				}
+func (m *Worker[J]) run() {
+	switch m.graceful {
+	case true:
+		goo.Go(func() {
+			m.trigger.IterFuncFully(func(element J) {
+				m.do(element)
+			})
+		})
 
-				if m.trigger.IsEmpty() {
-					return
-				}
+	default:
+		goo.Go(func() {
+			m.trigger.IterFunc(func(element J) bool {
+				select {
+				case <-m.Done():
+					return false
 
-			case job := <-m.trigger.Chan():
-				m.do(job)
-			}
-		}
-	})
+				default:
+					m.do(element)
+					return true
+				}
+			})
+		})
+	}
 }
