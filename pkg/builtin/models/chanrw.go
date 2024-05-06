@@ -8,7 +8,7 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
-type Chan[E any] struct {
+type ChanRW[E any] struct {
 	l           *sync.Mutex
 	done        chan struct{}
 	recvTimeout time.Duration
@@ -16,21 +16,21 @@ type Chan[E any] struct {
 	c           chan E
 }
 
-func FromChan[E any](c chan E) *Chan[E] {
-	return &Chan[E]{
+func FromChan[E any](c chan E) *ChanRW[E] {
+	return &ChanRW[E]{
 		l:    &sync.Mutex{},
 		done: make(chan struct{}),
 		c:    c,
 	}
 }
 
-func (c *Chan[E]) Len() int {
+func (c *ChanRW[E]) Len() int {
 	return len(c.c)
 }
 
-func (c *Chan[E]) IsEmpty() bool { return c.Len() == 0 }
+func (c *ChanRW[E]) IsEmpty() bool { return c.Len() == 0 }
 
-func (c *Chan[E]) Closed() bool {
+func (c *ChanRW[E]) Closed() bool {
 	select {
 	case <-c.done:
 		return true
@@ -39,7 +39,7 @@ func (c *Chan[E]) Closed() bool {
 	}
 }
 
-func (c *Chan[E]) Close() {
+func (c *ChanRW[E]) Close() {
 	c.l.Lock()
 	defer c.l.Unlock()
 	if c.Closed() {
@@ -49,7 +49,7 @@ func (c *Chan[E]) Close() {
 	close(c.c)
 }
 
-func (c *Chan[E]) Receive() (wrapper.UnWrapper[E], bool) {
+func (c *ChanRW[E]) Receive() (wrapper.UnWrapper[E], bool) {
 	if c.recvTimeout <= 0 {
 		element := <-c.c
 		return wrap.Wrap(element), true
@@ -65,7 +65,7 @@ func (c *Chan[E]) Receive() (wrapper.UnWrapper[E], bool) {
 	}
 }
 
-func (c *Chan[E]) Send(e E) {
+func (c *ChanRW[E]) Send(e E) {
 	if c.Closed() {
 		return
 	}
@@ -82,11 +82,19 @@ func (c *Chan[E]) Send(e E) {
 	}
 }
 
-func (c *Chan[E]) Chan() chan E {
+func (c *ChanRW[E]) Chan() chan E {
 	return c.c
 }
 
-func (c *Chan[E]) IterFunc(f func(E) bool) {
+func (c *ChanRW[E]) ChanR() <-chan E {
+	return c.c
+}
+
+func (c *ChanRW[E]) ChanW() chan<- E {
+	return c.c
+}
+
+func (c *ChanRW[E]) IterFunc(f func(E) bool) {
 	for e := range c.c {
 		ok := f(e)
 		if !ok {
@@ -95,13 +103,13 @@ func (c *Chan[E]) IterFunc(f func(E) bool) {
 	}
 }
 
-func (c *Chan[E]) IterFuncFully(f func(E)) {
+func (c *ChanRW[E]) IterFuncFully(f func(E)) {
 	for e := range c.c {
 		f(e)
 	}
 }
 
-func (c *Chan[E]) IterFuncMut(f func(E, *Chan[E]) bool) {
+func (c *ChanRW[E]) IterFuncMut(f func(E, *ChanRW[E]) bool) {
 	for e := range c.c {
 		ok := f(e, c)
 		if !ok {
@@ -110,13 +118,13 @@ func (c *Chan[E]) IterFuncMut(f func(E, *Chan[E]) bool) {
 	}
 }
 
-func (c *Chan[E]) IterFuncMutFully(f func(E, *Chan[E])) {
+func (c *ChanRW[E]) IterFuncMutFully(f func(E, *ChanRW[E])) {
 	for e := range c.c {
 		f(e, c)
 	}
 }
 
-func (c *Chan[E]) Renew(buff int) {
+func (c *ChanRW[E]) Renew(buff int) {
 	if !c.Closed() {
 		return
 	}
@@ -125,14 +133,17 @@ func (c *Chan[E]) Renew(buff int) {
 	c.c = make(chan E, buff)
 }
 
-func (c *Chan[E]) RenewForce(buff int) {
+func (c *ChanRW[E]) RenewForce(buff int) {
 	c.c = make(chan E, buff)
 	if c.Closed() {
 		c.done = make(chan struct{})
 	}
 }
 
-func (c *Chan[E]) Timeout(send, recv time.Duration) {
+func (c *ChanRW[E]) SendTimeout(send time.Duration) {
 	c.sendTimeout = send
+}
+
+func (c *ChanRW[E]) RecvTimeout(recv time.Duration) {
 	c.recvTimeout = recv
 }
