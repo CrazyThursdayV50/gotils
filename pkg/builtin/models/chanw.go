@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	chanWrite[E any] interface {
+	ChanWrite[E any] interface {
 		chan E | chan<- E
 	}
 
@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func FromChanW[E any, C chanWrite[E]](c C) *ChanW[E] {
+func FromChanW[E any, C ChanWrite[E]](c C) *ChanW[E] {
 	return &ChanW[E]{
 		l:    &sync.Mutex{},
 		done: make(chan struct{}),

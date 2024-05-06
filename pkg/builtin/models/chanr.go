@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	chanRead[E any] interface {
+	ChanRead[E any] interface {
 		chan E | <-chan E
 	}
 
@@ -22,7 +22,7 @@ type (
 	}
 )
 
-func FromChanR[E any, C chanRead[E]](c C) *ChanR[E] {
+func FromChanR[E any, C ChanRead[E]](c C) *ChanR[E] {
 	return &ChanR[E]{
 		l:    &sync.Mutex{},
 		done: make(chan struct{}),
