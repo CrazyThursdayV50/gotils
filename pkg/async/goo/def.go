@@ -1,6 +1,9 @@
 package goo
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 func try(f func()) (err error) {
 	defer func() {
@@ -9,13 +12,10 @@ func try(f func()) (err error) {
 			return
 		}
 
-		var ok bool
-		err, ok = er.(error)
-		if ok {
-			return
-		}
-
-		err = fmt.Errorf("%v", er)
+		var buf = make([]byte, 1024)
+		n := runtime.Stack(buf, false)
+		location := locatePanic(buf[:n])
+		err = fmt.Errorf("%v, %s", er, location)
 	}()
 
 	f()
