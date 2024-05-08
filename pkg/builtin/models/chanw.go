@@ -3,6 +3,8 @@ package models
 import (
 	"sync"
 	"time"
+
+	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
 )
 
 type (
@@ -12,18 +14,18 @@ type (
 
 	ChanW[E any] struct {
 		l           *sync.Mutex
-		done        chan struct{}
+		done        bool
 		recvTimeout time.Duration
 		sendTimeout time.Duration
 		c           chan<- E
+		sendwg      sync.WaitGroup
 	}
 )
 
 func FromChanW[E any, C ChanWrite[E]](c C) *ChanW[E] {
 	return &ChanW[E]{
-		l:    &sync.Mutex{},
-		done: make(chan struct{}),
-		c:    c,
+		l: &sync.Mutex{},
+		c: c,
 	}
 }
 
@@ -41,24 +43,31 @@ func (c *ChanW[E]) Closed() bool {
 	return false
 }
 
+func (c *ChanW[E]) closeSendChan() {
+	c.sendwg.Wait()
+	close(c.c)
+}
+
 func (c *ChanW[E]) Close() {
 	c.l.Lock()
 	defer c.l.Unlock()
 	if c.Closed() {
 		return
 	}
-	close(c.done)
-	close(c.c)
+	c.done = true
+	goo.Go(c.closeSendChan)
 }
 
 func (c *ChanW[E]) Send(e E) {
-	if c.Closed() {
+	if c.done {
 		return
 	}
 
+	c.sendwg.Add(1)
+	defer c.sendwg.Done()
+
 	if c.sendTimeout <= 0 {
 		c.c <- e
-		return
 	}
 
 	timer := time.NewTimer(c.sendTimeout)

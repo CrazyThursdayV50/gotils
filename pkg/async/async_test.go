@@ -29,16 +29,22 @@ func TestAsync(t *testing.T) {
 	conf.SetLogger(l)
 	conf.SetHandler(func(e *testData, logger logger.Logger) {
 		logger.Info("receive data: %v", e)
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 100)
 	})
 
 	consumer := conf.Build()
 	consumer.Run()
 	goo.Goo(func() {
 		for i := 0; i < 1000; i++ {
-			go func(i int) {
+			i := i
+			goo.Goo(func() {
 				ch.Send(&testData{name: fmt.Sprintf("%X", i), value: i})
-			}(i)
+			}, func(err error) {
+				if err == nil {
+					return
+				}
+				l.Error("%v", err)
+			})
 		}
 	}, func(err error) {
 		if err == nil {
@@ -51,5 +57,5 @@ func TestAsync(t *testing.T) {
 	l.Info("exit")
 	ch.Close()
 	consumer.Stop()
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 }
