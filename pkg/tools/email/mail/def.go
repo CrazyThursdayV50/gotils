@@ -64,7 +64,6 @@ func New(opts ...option) *Mail {
 	return &m
 }
 
-func (m *Mail) From() string { return m.from }
 func (m *Mail) To() []string { return m.to }
 
 func (m *Mail) Message() []byte {

@@ -75,8 +75,10 @@ func New(opts ...Option) (*Mailer, error) {
 	return &m, nil
 }
 
+func (m *Mailer) From() string { return m.from }
+
 func (m *Mailer) Send(mail email.MailMessager) error {
-	var err = m.client.Mail(mail.From())
+	var err = m.client.Mail(m.from)
 	if err != nil {
 		fmt.Printf("mail\n")
 		return err
