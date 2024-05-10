@@ -3,6 +3,7 @@ package goo
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 func try(f func()) (err error) {
@@ -15,7 +16,7 @@ func try(f func()) (err error) {
 		var buf = make([]byte, 1024)
 		n := runtime.Stack(buf, false)
 		location := locatePanic(buf[:n])
-		err = fmt.Errorf("%v, %s", er, location)
+		err = fmt.Errorf("%v, %s", er, strings.Join(location, " <- "))
 	}()
 
 	f()

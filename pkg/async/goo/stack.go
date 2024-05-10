@@ -3,28 +3,28 @@ package goo
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
-func locatePanic(stack []byte) string {
+func locatePanic(stack []byte) []string {
 	lines := bytes.Split(stack, []byte("\n"))
-	if len(lines) < 1 {
-		return string(stack)
+	if len(lines) < 3 {
+		return []string{string(stack)}
 	}
 
 	lines = lines[1:]
-	var located bool
-	var index int
-	for i, line := range lines {
-		if bytes.Contains(line, []byte("runtime/panic.go:770 +0x124")) {
-			located = true
-			index = i
-			break
+	var stacks []string
+	for i := 0; i < len(lines); i += 2 {
+		if i < len(lines)-1 {
+			stacks = append(stacks, fmt.Sprintf("{%s::%s}", lines[i], bytes.TrimSpace(lines[i+1])))
 		}
 	}
 
-	if located && len(lines)-1 > index+2 {
-		return fmt.Sprintf("caller: %s, line: %s", lines[index+1], bytes.TrimSpace(lines[index+2]))
+	for i, stack := range stacks {
+		if strings.Contains(stack, "runtime/panic.go:770 +0x124") && i < len(stacks)-1 {
+			return stacks[i+1:]
+		}
 	}
 
-	return string(stack)
+	return stacks
 }

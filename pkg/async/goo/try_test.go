@@ -12,6 +12,7 @@ func TestTry(t *testing.T) {
 	err = TryE(func() {
 		panic("?")
 	})
+
 	t.Errorf("err: %v", err)
 
 	err = TryE(func() {
@@ -19,11 +20,13 @@ func TestTry(t *testing.T) {
 		b := 0
 		_ = a / b
 	})
+
 	t.Errorf("err: %v", err)
 
 	err = TryE(func() {
 		var fn func()
 		fn()
 	})
+
 	t.Errorf("err: %v", err)
 }
