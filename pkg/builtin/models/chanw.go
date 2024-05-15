@@ -30,12 +30,18 @@ func FromChanW[E any, C ChanWrite[E]](c C) *ChanW[E] {
 }
 
 func (c *ChanW[E]) Len() int {
+	if c == nil {
+		return 0
+	}
 	return len(c.c)
 }
 
 func (c *ChanW[E]) IsEmpty() bool { return c.Len() == 0 }
 
 func (c *ChanW[E]) Closed() bool {
+	if c == nil {
+		return true
+	}
 	if len(c.c) == 0 && cap(c.c) == 0 {
 		return true
 	}
@@ -49,6 +55,9 @@ func (c *ChanW[E]) closeSendChan() {
 }
 
 func (c *ChanW[E]) Close() {
+	if c == nil {
+		return
+	}
 	c.l.Lock()
 	defer c.l.Unlock()
 	if c.Closed() {
@@ -59,6 +68,9 @@ func (c *ChanW[E]) Close() {
 }
 
 func (c *ChanW[E]) Send(e E) {
+	if c == nil {
+		return
+	}
 	if c.done {
 		return
 	}
@@ -78,9 +90,15 @@ func (c *ChanW[E]) Send(e E) {
 }
 
 func (c *ChanW[E]) ChanW() chan<- E {
+	if c == nil {
+		return nil
+	}
 	return c.c
 }
 
 func (c *ChanW[E]) SendTimeout(send time.Duration) {
+	if c == nil {
+		return
+	}
 	c.sendTimeout = send
 }

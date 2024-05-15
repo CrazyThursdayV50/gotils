@@ -31,12 +31,19 @@ func FromChanR[E any, C ChanRead[E]](c C) *ChanR[E] {
 }
 
 func (c *ChanR[E]) Len() int {
+	if c == nil {
+		return 0
+	}
 	return len(c.c)
 }
 
 func (c *ChanR[E]) IsEmpty() bool { return c.Len() == 0 }
 
 func (c *ChanR[E]) Closed() bool {
+	if c == nil {
+		return true
+	}
+
 	_, ok := <-c.c
 	if !ok {
 		return true
@@ -45,14 +52,24 @@ func (c *ChanR[E]) Closed() bool {
 }
 
 func (c *ChanR[E]) ChanR() <-chan E {
+	if c == nil {
+		return nil
+	}
 	return c.c
 }
 
 func (c *ChanR[E]) RecvTimeout(recv time.Duration) {
+	if c == nil {
+		return
+	}
 	c.recvTimeout = recv
 }
 
 func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
+	if c == nil {
+		return nil, false
+	}
+
 	if c.recvTimeout <= 0 {
 		element, ok := <-c.c
 		return wrap.Wrap(element), ok
@@ -69,6 +86,9 @@ func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
 }
 
 func (c *ChanR[E]) IterFunc(f func(E) bool) {
+	if c == nil {
+		return
+	}
 	for e := range c.c {
 		ok := f(e)
 		if !ok {
@@ -78,6 +98,9 @@ func (c *ChanR[E]) IterFunc(f func(E) bool) {
 }
 
 func (c *ChanR[E]) IterFuncFully(f func(E)) {
+	if c == nil {
+		return
+	}
 	for e := range c.c {
 		f(e)
 	}
