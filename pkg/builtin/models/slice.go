@@ -1,13 +1,14 @@
 package models
 
 import (
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
 type Slice[E any] struct {
 	slice    []E
-	lessFunc func(int, int) bool
+	lessFunc func(E, E) bool
 }
 
 func (s *Slice[E]) Slice() []E {
@@ -37,24 +38,17 @@ func (s *Slice[E]) Cut(from, to int) []E {
 	return s.slice[from:to]
 }
 
-func (s *Slice[E]) Index(element E, equal func(E, E) bool) int {
+func (s *Slice[E]) Index(element E, equal func(E, E) bool) wrapper.UnWrapper[int] {
 	if s == nil {
-		return -1
+		return nil
 	}
 	if equal == nil {
-		return -1
+		return nil
 	}
 
-	var index = -1
-	s.IterIndex(func(i int) bool {
-		ok := equal(s.Get(i).Unwrap(), element)
-		if ok {
-			index = i
-			return false
-		}
-		return true
+	return s.IterOkay(func(_ int, e E) bool {
+		return !equal(e, element)
 	})
-	return index
 }
 
 func FromSlice[E any](slice ...E) *Slice[E] {
@@ -88,10 +82,15 @@ func (s *Slice[E]) Less(i, j int) bool {
 	if s.lessFunc == nil {
 		return false
 	}
-	return s.lessFunc(i, j)
+	ie := s.Get(i)
+	je := s.Get(j)
+	if ie == nil || je == nil {
+		return false
+	}
+	return s.lessFunc(ie.Unwrap(), je.Unwrap())
 }
 
-func (s *Slice[E]) WithLessFunc(f func(int, int) bool) {
+func (s *Slice[E]) WithLessFunc(f func(a, b E) bool) {
 	if s == nil {
 		return
 	}
@@ -105,6 +104,16 @@ func (s *Slice[E]) Append(elements ...E) {
 	s.slice = append(s.slice, elements...)
 }
 
+func (s *Slice[E]) Set(index int, element E) {
+	if s == nil {
+		return
+	}
+	if s.Len() < index+1 {
+		return
+	}
+	s.slice[index] = element
+}
+
 func (s *Slice[E]) Get(index int) wrapper.UnWrapper[E] {
 	if s == nil {
 		return nil
@@ -115,94 +124,93 @@ func (s *Slice[E]) Get(index int) wrapper.UnWrapper[E] {
 	return wrap.Wrap(s.slice[index])
 }
 
-func (s *Slice[E]) IterIndex(f func(int) bool) int {
-	if s == nil {
-		return -1
-	}
-	for i := range s.slice {
-		ok := f(i)
-		if !ok {
-			return i
-		}
-	}
-	return s.Len()
-}
-
-func (s *Slice[E]) IterFunc(f func(E) bool) {
+func (s *Slice[E]) Clear() {
 	if s == nil {
 		return
 	}
-	for _, e := range s.slice {
-		ok := f(e)
-		if !ok {
-			return
-		}
-	}
+	clear(s.slice)
 }
 
-func (s *Slice[E]) IterFuncMut(f func(E, *Slice[E]) bool) {
+func (s *Slice[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper[int] {
 	if s == nil {
-		return
+		return wrap.Wrap(-1)
 	}
-	for _, e := range s.slice {
-		ok := f(e, s)
+	for i, e := range s.slice {
+		ok := f(i, e)
 		if !ok {
-			return
+			return wrap.Wrap(i)
 		}
 	}
+	return wrap.Wrap(s.Len())
 }
 
-func (s *Slice[E]) IterError(f func(E) error) error {
+func (s *Slice[E]) IterError(f func(index int, element E) error) (wrapper.UnWrapper[int], error) {
 	if s == nil {
-		return nil
+		return wrap.Wrap(-1), nil
 	}
-	for _, e := range s.slice {
-		err := f(e)
+	for i, e := range s.slice {
+		err := f(i, e)
 		if err != nil {
-			return err
+			return wrap.Wrap(i), err
 		}
 	}
-	return nil
+	return wrap.Wrap(s.Len()), nil
 }
 
-func (s *Slice[E]) IterIndexFully(f func(int)) {
+func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
 	if s == nil {
 		return
 	}
-	for i := range s.slice {
-		f(i)
-	}
-}
 
-func (s *Slice[E]) IterFuncFully(f func(E)) {
-	if s == nil {
-		return
-	}
-	for _, e := range s.slice {
-		f(e)
-	}
-}
-
-func (s *Slice[E]) IterFuncMutFully(f func(E, *Slice[E])) {
-	if s == nil {
-		return
-	}
-	for _, e := range s.slice {
-		f(e, s)
-	}
-}
-
-func (s *Slice[E]) IterErrorFully(f func(E) error) (err *Slice[error]) {
-	if s == nil {
-		return nil
-	}
-	for _, e := range s.slice {
-		er := f(e)
+	for i, e := range s.slice {
+		er := f(i, e)
 		if er != nil {
 			if err == nil {
-				err = FromSlice(err.Slice()...)
+				err = MakeMap[int, error](0)
 			}
-			err.Append(er)
+			err.Set(i, er)
+		}
+	}
+	return
+}
+
+func (s *Slice[E]) IterMutOkay(f func(index int, element E, self api.GetSeter[int, E]) bool) wrapper.UnWrapper[int] {
+	if s == nil {
+		return wrap.Wrap(-1)
+	}
+	for i, e := range s.slice {
+		ok := f(i, e, s)
+		if !ok {
+			return wrap.Wrap(i)
+		}
+	}
+	return wrap.Wrap(s.Len())
+}
+
+func (s *Slice[E]) IterMutError(f func(index int, element E, self api.GetSeter[int, E]) error) (wrapper.UnWrapper[int], error) {
+	if s == nil {
+		return wrap.Wrap(-1), nil
+	}
+	for i, e := range s.slice {
+		err := f(i, e, s)
+		if err != nil {
+			return wrap.Wrap(i), err
+		}
+	}
+	return wrap.Wrap(s.Len()), nil
+}
+
+func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[int, E]) error) (err api.MapAPI[int, error]) {
+	if s == nil {
+		return
+	}
+	for i, e := range s.slice {
+		er := f(i, e, s)
+		if er != nil {
+			if err == nil {
+				err = MakeMap[int, error](0)
+			}
+			err.Set(i, er)
 		}
 	}
 	return

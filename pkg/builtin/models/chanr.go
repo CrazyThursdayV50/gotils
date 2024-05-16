@@ -2,8 +2,10 @@ package models
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
@@ -19,6 +21,7 @@ type (
 		recvTimeout time.Duration
 		sendTimeout time.Duration
 		c           <-chan E
+		count       int64
 	}
 )
 
@@ -72,12 +75,18 @@ func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
 
 	if c.recvTimeout <= 0 {
 		element, ok := <-c.c
+		if ok {
+			atomic.AddInt64(&c.count, 1)
+		}
 		return wrap.Wrap(element), ok
 	}
 
 	timer := time.NewTimer(c.recvTimeout)
 	select {
 	case element, ok := <-c.c:
+		if ok {
+			atomic.AddInt64(&c.count, 1)
+		}
 		return wrap.Wrap(element), ok
 
 	case <-timer.C:
@@ -85,23 +94,53 @@ func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
 	}
 }
 
-func (c *ChanR[E]) IterFunc(f func(E) bool) {
+func (c *ChanR[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper[int] {
 	if c == nil {
-		return
+		return nil
 	}
+
 	for e := range c.c {
-		ok := f(e)
+		atomic.AddInt64(&c.count, 1)
+		ok := f(int(c.count), e)
 		if !ok {
-			return
+			return wrap.Wrap(int(c.count))
 		}
 	}
+
+	return nil
 }
 
-func (c *ChanR[E]) IterFuncFully(f func(E)) {
+func (c *ChanR[E]) IterError(f func(index int, element E) error) (wrapper.UnWrapper[int], error) {
+	if c == nil {
+		return nil, nil
+	}
+
+	for e := range c.c {
+		atomic.AddInt64(&c.count, 1)
+		err := f(int(c.count), e)
+		if err != nil {
+			return wrap.Wrap(int(c.count)), err
+		}
+	}
+
+	return nil, nil
+}
+
+func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
 	if c == nil {
 		return
 	}
+
 	for e := range c.c {
-		f(e)
+		atomic.AddInt64(&c.count, 1)
+		er := f(int(c.count), e)
+		if er != nil {
+			if err == nil {
+				err = MakeMap[int, error](0)
+			}
+			err.Set(int(c.count), er)
+		}
 	}
+
+	return
 }

@@ -2,9 +2,11 @@ package models
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
@@ -16,6 +18,7 @@ type ChanRW[E any] struct {
 	sendTimeout time.Duration
 	c           chan E
 	sendwg      sync.WaitGroup
+	countR      int64
 }
 
 func FromChan[E any](c chan E) *ChanRW[E] {
@@ -122,48 +125,6 @@ func (c *ChanRW[E]) ChanW() chan<- E {
 	return c.c
 }
 
-func (c *ChanRW[E]) IterFunc(f func(E) bool) {
-	if c == nil {
-		return
-	}
-	for e := range c.c {
-		ok := f(e)
-		if !ok {
-			return
-		}
-	}
-}
-
-func (c *ChanRW[E]) IterFuncFully(f func(E)) {
-	if c == nil {
-		return
-	}
-	for e := range c.c {
-		f(e)
-	}
-}
-
-func (c *ChanRW[E]) IterFuncMut(f func(E, *ChanRW[E]) bool) {
-	if c == nil {
-		return
-	}
-	for e := range c.c {
-		ok := f(e, c)
-		if !ok {
-			return
-		}
-	}
-}
-
-func (c *ChanRW[E]) IterFuncMutFully(f func(E, *ChanRW[E])) {
-	if c == nil {
-		return
-	}
-	for e := range c.c {
-		f(e, c)
-	}
-}
-
 func (c *ChanRW[E]) Renew(buff int) {
 	if c == nil {
 		return
@@ -198,4 +159,55 @@ func (c *ChanRW[E]) RecvTimeout(recv time.Duration) {
 		return
 	}
 	c.recvTimeout = recv
+}
+
+func (c *ChanRW[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper[int] {
+	if c == nil {
+		return nil
+	}
+
+	for e := range c.c {
+		atomic.AddInt64(&c.countR, 1)
+		ok := f(int(c.countR), e)
+		if !ok {
+			return wrap.Wrap(int(c.countR))
+		}
+	}
+
+	return nil
+}
+
+func (c *ChanRW[E]) IterError(f func(index int, element E) error) (wrapper.UnWrapper[int], error) {
+	if c == nil {
+		return nil, nil
+	}
+
+	for e := range c.c {
+		atomic.AddInt64(&c.countR, 1)
+		err := f(int(c.countR), e)
+		if err != nil {
+			return wrap.Wrap(int(c.countR)), err
+		}
+	}
+
+	return nil, nil
+}
+
+func (c *ChanRW[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
+	if c == nil {
+		return
+	}
+
+	for e := range c.c {
+		atomic.AddInt64(&c.countR, 1)
+		er := f(int(c.countR), e)
+		if er != nil {
+			if err == nil {
+				err = MakeMap[int, error](0)
+			}
+			err.Set(int(c.countR), er)
+		}
+	}
+
+	return
 }
