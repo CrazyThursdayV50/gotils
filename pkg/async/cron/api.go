@@ -10,7 +10,7 @@ import (
 func New(opts ...Option) *Cron {
 	var c Cron
 	opts = append(defaultOptions(), opts...)
-	slice.From(opts).IterFuncFully(func(opt Option) { opt(&c) })
+	_ = slice.From(opts...).IterFully(func(_ int, opt Option) error { opt(&c); return nil })
 	return &c
 }
 

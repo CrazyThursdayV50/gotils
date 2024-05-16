@@ -9,41 +9,43 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
-type Map[K cmp.Ordered, V any] struct {
+var _ api.MapAPI[*int, any, int] = (*Map[*int, any, int])(nil)
+
+type Map[K cmp.Ordered | *T, V any, T any] struct {
 	l *sync.RWMutex
 	m map[K]V
 }
 
-func (m *Map[K, V]) Map() map[K]V {
+func (m *Map[K, V, T]) Inner() map[K]V {
 	if m == nil {
 		return nil
 	}
 	return m.m
 }
 
-func FromMap[K cmp.Ordered, V any](m map[K]V) *Map[K, V] {
+func MakeMap[K cmp.Ordered | *T, V any, T any](cap int) *Map[K, V, T] {
+	return FromMap[K, V, T](make(map[K]V, cap))
+}
+
+func FromMap[K cmp.Ordered | *T, V any, T any](m map[K]V) *Map[K, V, T] {
 	if m == nil {
-		return MakeMap[K, V](0)
+		return MakeMap[K, V, T](0)
 	}
 
-	return &Map[K, V]{
+	return &Map[K, V, T]{
 		l: &sync.RWMutex{},
 		m: m,
 	}
 }
 
-func MakeMap[K cmp.Ordered, V any](cap int) *Map[K, V] {
-	return FromMap(make(map[K]V, cap))
-}
-
-func (m *Map[K, V]) Len() int {
+func (m *Map[K, V, T]) Len() int {
 	if m == nil {
 		return 0
 	}
 	return len(m.m)
 }
 
-func (m *Map[K, V]) Set(k K, v V) {
+func (m *Map[K, V, T]) Set(k K, v V) {
 	if m == nil {
 		return
 	}
@@ -52,7 +54,7 @@ func (m *Map[K, V]) Set(k K, v V) {
 	m.m[k] = v
 }
 
-func (m *Map[K, V]) Has(k K) bool {
+func (m *Map[K, V, T]) Has(k K) bool {
 	if m == nil {
 		return false
 	}
@@ -63,7 +65,7 @@ func (m *Map[K, V]) Has(k K) bool {
 }
 
 // add if not exist
-func (m *Map[K, V]) AddSoft(k K, v V) {
+func (m *Map[K, V, T]) AddSoft(k K, v V) {
 	if m == nil {
 		return
 	}
@@ -75,7 +77,7 @@ func (m *Map[K, V]) AddSoft(k K, v V) {
 	m.Set(k, v)
 }
 
-func (m *Map[K, V]) Get(k K) wrapper.UnWrapper[V] {
+func (m *Map[K, V, T]) Get(k K) wrapper.UnWrapper[V] {
 	if m == nil {
 		return nil
 	}
@@ -88,7 +90,7 @@ func (m *Map[K, V]) Get(k K) wrapper.UnWrapper[V] {
 	return wrap.Wrap(v)
 }
 
-func (m *Map[K, V]) Del(k K) {
+func (m *Map[K, V, T]) Del(k K) {
 	if m == nil {
 		return
 	}
@@ -97,7 +99,7 @@ func (m *Map[K, V]) Del(k K) {
 	delete(m.m, k)
 }
 
-func (m *Map[K, V]) Keys() api.SliceAPI[K] {
+func (m *Map[K, V, T]) Keys() api.SliceAPI[K] {
 	if m == nil {
 		return nil
 	}
@@ -111,7 +113,7 @@ func (m *Map[K, V]) Keys() api.SliceAPI[K] {
 	return slice
 }
 
-func (m *Map[K, V]) Values() api.SliceAPI[V] {
+func (m *Map[K, V, T]) Values() api.SliceAPI[V] {
 	if m == nil {
 		return nil
 	}
@@ -125,7 +127,7 @@ func (m *Map[K, V]) Values() api.SliceAPI[V] {
 	return slice
 }
 
-func (m *Map[K, V]) Clear() {
+func (m *Map[K, V, T]) Clear() {
 	if m == nil {
 		return
 	}
@@ -134,7 +136,7 @@ func (m *Map[K, V]) Clear() {
 	clear(m.m)
 }
 
-func (m *Map[K, V]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
+func (m *Map[K, V, T]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
 	if m == nil {
 		return nil
 	}
@@ -149,7 +151,7 @@ func (m *Map[K, V]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
 	return nil
 }
 
-func (m *Map[K, V]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], error) {
+func (m *Map[K, V, T]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -164,7 +166,7 @@ func (m *Map[K, V]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], err
 	return nil, nil
 }
 
-func (m *Map[K, V]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, error]) {
+func (m *Map[K, V, T]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, error, T]) {
 	if m == nil {
 		return
 	}
@@ -174,7 +176,7 @@ func (m *Map[K, V]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, error])
 		er := f(k, v)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[K, error](0)
+				err = MakeMap[K, error, T](0)
 			}
 			err.Set(k, er)
 		}
@@ -182,7 +184,7 @@ func (m *Map[K, V]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, error])
 	return
 }
 
-func (m *Map[K, V]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) bool) wrapper.UnWrapper[K] {
+func (m *Map[K, V, T]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) bool) wrapper.UnWrapper[K] {
 	if m == nil {
 		return nil
 	}
@@ -199,7 +201,7 @@ func (m *Map[K, V]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) bool) 
 	return keys.Get(index.Unwrap())
 }
 
-func (m *Map[K, V]) IterMutError(f func(k K, v V, self api.GetSeter[K, V]) error) (wrapper.UnWrapper[K], error) {
+func (m *Map[K, V, T]) IterMutError(f func(k K, v V, self api.GetSeter[K, V]) error) (wrapper.UnWrapper[K], error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -216,7 +218,7 @@ func (m *Map[K, V]) IterMutError(f func(k K, v V, self api.GetSeter[K, V]) error
 	return keys.Get(index.Unwrap()), err
 }
 
-func (m *Map[K, V]) IterMutFully(f func(k K, v V, self api.GetSeter[K, V]) error) (err api.MapAPI[K, error]) {
+func (m *Map[K, V, T]) IterMutFully(f func(k K, v V, self api.GetSeter[K, V]) error) (err api.MapAPI[K, error, T]) {
 	if m == nil {
 		return
 	}
@@ -230,7 +232,7 @@ func (m *Map[K, V]) IterMutFully(f func(k K, v V, self api.GetSeter[K, V]) error
 		return nil
 	}
 
-	err = MakeMap[K, error](0)
+	err = MakeMap[K, error, T](0)
 	_ = errs.IterFully(func(k int, v error) error {
 		err.Set(keys.Get(k).Unwrap(), v)
 		return nil

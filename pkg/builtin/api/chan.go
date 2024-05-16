@@ -14,23 +14,23 @@ type (
 	}
 
 	baseReadWriteChanAPI[E any] interface {
-		Chan() chan E
+		Inner() chan E
 		Renew(buffer int)
 		RenewForce(buffer int)
 	}
 
 	baseWriteChanAPI[E any] interface {
-		ChanW() chan<- E
+		InnerW() chan<- E
 		Close()
 		Send(element E)
 		SendTimeout(send time.Duration)
 	}
 
 	baseReadChanAPI[E any] interface {
-		ChanR() <-chan E
+		InnerR() <-chan E
 		Receive() (wrapper.UnWrapper[E], bool)
 		RecvTimeout(recv time.Duration)
-		Iter[int, E]
+		Iter[int, E, any]
 	}
 
 	ChanAPIR[E any] interface {

@@ -6,12 +6,14 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
+var _ api.SliceAPI[any] = (*Slice[any])(nil)
+
 type Slice[E any] struct {
 	slice    []E
 	lessFunc func(E, E) bool
 }
 
-func (s *Slice[E]) Slice() []E {
+func (s *Slice[E]) Inner() []E {
 	if s == nil {
 		return nil
 	}
@@ -59,6 +61,13 @@ func FromSlice[E any](slice ...E) *Slice[E] {
 
 func MakeSlice[E any](len, cap int) *Slice[E] {
 	return FromSlice(make([]E, len, cap)...)
+}
+
+func (s *Slice[E]) Cap() int {
+	if s == nil {
+		return 0
+	}
+	return cap(s.slice)
 }
 
 func (s *Slice[E]) Len() int {
@@ -157,7 +166,7 @@ func (s *Slice[E]) IterError(f func(index int, element E) error) (wrapper.UnWrap
 	return wrap.Wrap(s.Len()), nil
 }
 
-func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
+func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
 	if s == nil {
 		return
 	}
@@ -166,7 +175,7 @@ func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI
 		er := f(i, e)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error](0)
+				err = MakeMap[int, error, any](0)
 			}
 			err.Set(i, er)
 		}
@@ -200,7 +209,7 @@ func (s *Slice[E]) IterMutError(f func(index int, element E, self api.GetSeter[i
 	return wrap.Wrap(s.Len()), nil
 }
 
-func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[int, E]) error) (err api.MapAPI[int, error]) {
+func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[int, E]) error) (err api.MapAPI[int, error, any]) {
 	if s == nil {
 		return
 	}
@@ -208,7 +217,7 @@ func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[i
 		er := f(i, e, s)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error](0)
+				err = MakeMap[int, error, any](0)
 			}
 			err.Set(i, er)
 		}

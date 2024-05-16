@@ -45,13 +45,14 @@ func (m *Mailer) smtpServer() string {
 
 func New(opts ...Option) (*Mailer, error) {
 	var m Mailer
-	slice.From(opts).IterFuncFully(func(opt Option) {
+	_ = slice.From(opts...).IterFully(func(_ int, opt Option) error {
 		opt(&m)
+		return nil
 	})
 
 	m.smtpAuth = smtp.PlainAuth(m.username, m.from, m.password, m.smtpEndpoint)
 
-	var tlsConfig = tls.Config{
+	tlsConfig := tls.Config{
 		InsecureSkipVerify: true,
 		ServerName:         m.smtpEndpoint,
 	}
@@ -78,7 +79,7 @@ func New(opts ...Option) (*Mailer, error) {
 func (m *Mailer) From() string { return m.from }
 
 func (m *Mailer) Send(mail email.MailMessager) error {
-	var err = m.client.Mail(m.from)
+	err := m.client.Mail(m.from)
 	if err != nil {
 		fmt.Printf("mail\n")
 		return err

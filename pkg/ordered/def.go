@@ -5,3 +5,7 @@ type Ordered[E any] interface {
 	Equal(E) bool
 	LessThan(E) bool
 }
+
+type CmpOrdered[T any] interface {
+	Less(T) bool
+}

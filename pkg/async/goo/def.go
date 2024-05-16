@@ -13,7 +13,7 @@ func try(f func()) (err error) {
 			return
 		}
 
-		var buf = make([]byte, 1024)
+		buf := make([]byte, 1024)
 		n := runtime.Stack(buf, false)
 		location := locatePanic(buf[:n])
 		err = fmt.Errorf("%v, %s", er, strings.Join(location, " <- "))

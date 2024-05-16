@@ -71,8 +71,9 @@ func WithHTML() option {
 func New(opts ...option) *Mail {
 	var m Mail
 	m.header = make(textproto.MIMEHeader)
-	slice.From(opts).IterFuncFully(func(opt option) {
+	_ = slice.From(opts...).IterFully(func(_ int, opt option) error {
 		opt(&m)
+		return nil
 	})
 	return &m
 }

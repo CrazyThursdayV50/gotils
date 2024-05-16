@@ -7,13 +7,13 @@ import (
 )
 
 func TestMailer(t *testing.T) {
-	var username = "mailer tester"
-	var sender = "xx@xx.com"
-	var password = "xx"
-	var receiver = "yy@xx.com"
-	var endpoint = "smtp.xx.com"
-	var port = 465
-	var mailer, err = New(
+	username := "mailer tester"
+	sender := "xx@xx.com"
+	password := "xx"
+	receiver := "yy@xx.com"
+	endpoint := "smtp.xx.com"
+	port := 465
+	mailer, err := New(
 		WithUsername(username),
 		WithSender(sender, password),
 		WithSMTP(endpoint, port),
@@ -22,16 +22,16 @@ func TestMailer(t *testing.T) {
 		t.Fatalf("new mailer failed: %v", err)
 	}
 
-	var to = []string{
+	to := []string{
 		sender,
 		receiver,
 	}
-	var cc = []string{
+	cc := []string{
 		sender,
 		receiver,
 	}
 
-	var mail = mail.New(
+	mail := mail.New(
 		mail.WithFrom(sender),
 		mail.WithTo(to...),
 		mail.WithCc(cc...),

@@ -1,4 +1,4 @@
-package in
+package implement
 
 import (
 	"fmt"
@@ -11,25 +11,26 @@ import (
 )
 
 func TestIn(t *testing.T) {
-	chans := slice.Collect(slice.Make[struct{}](10, 10).Slice(), func(struct{}) chan any {
+	chans := slice.Collect(slice.Empty(10).Inner(), func(struct{}) chan any {
 		return make(chan any)
 	})
 
-	from := slice.Collect(chans.Slice(), func(element chan any) api.ChanAPI[any] {
+	from := slice.Collect(chans.Inner(), func(element chan any) api.ChanAPI[any] {
 		return gchan.From(element)
 	})
 
-	from.IterFuncFully(func(element api.ChanAPI[any]) {
+	_ = from.IterFully(func(_ int, element api.ChanAPI[any]) error {
 		goo.Go(func() {
 			for i := range 10 {
 				element.Send(i)
 			}
 		})
+		return nil
 	})
 
 	fan := From[any](func(t any) {
 		fmt.Printf("receive: %v\n", t)
-	}, chans.Slice()...)
+	}, chans.Inner()...)
 	defer fan.Close()
 
 	<-make(chan struct{})

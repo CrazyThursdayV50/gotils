@@ -1,4 +1,4 @@
-package in
+package implement
 
 import (
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
@@ -6,36 +6,34 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	gchan "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/chan"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api/slice"
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/models"
 )
 
 type Fan[T any] struct {
 	close func()
 }
 
-type c[T any] interface {
-	chan T | <-chan T
-}
-
-func From[T any, C c[T]](handler func(t T), chans ...C) *Fan[T] {
-	from := slice.Collect(chans, func(element C) api.ChanAPIR[T] {
+func From[element any, C models.ChanRead[element]](handler func(t element), chans ...C) *Fan[element] {
+	from := slice.Collect(chans, func(element C) api.ChanAPIR[element] {
 		return gchan.FromRead(element)
 	})
 
-	return New(handler, from.Slice()...)
+	return New(handler, from.Inner()...)
 }
 
-func New[T any](handler func(t T), from ...api.ChanAPIR[T]) *Fan[T] {
-	var fan Fan[T]
+func New[element any](handler func(t element), from ...api.ChanAPIR[element]) *Fan[element] {
+	var fan Fan[element]
 	worker, delivery := worker.New(handler)
 	worker.WithGraceful(true)
 	worker.Run()
-	slice.From(from).IterFuncFully(func(ch api.ChanAPIR[T]) {
+	_ = slice.From(from...).IterFully(func(_ int, ch api.ChanAPIR[element]) error {
 		goo.Go(func() {
-			ch.IterFunc(func(element T) bool {
+			_ = ch.IterFully(func(_ int, element element) error {
 				delivery(element)
-				return true
+				return nil
 			})
 		})
+		return nil
 	})
 	fan.close = worker.Stop
 	return &fan

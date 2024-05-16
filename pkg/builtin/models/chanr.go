@@ -54,7 +54,7 @@ func (c *ChanR[E]) Closed() bool {
 	return false
 }
 
-func (c *ChanR[E]) ChanR() <-chan E {
+func (c *ChanR[E]) InnerR() <-chan E {
 	if c == nil {
 		return nil
 	}
@@ -126,7 +126,7 @@ func (c *ChanR[E]) IterError(f func(index int, element E) error) (wrapper.UnWrap
 	return nil, nil
 }
 
-func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
+func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
 	if c == nil {
 		return
 	}
@@ -136,7 +136,7 @@ func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI
 		er := f(int(c.count), e)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error](0)
+				err = MakeMap[int, error, any](0)
 			}
 			err.Set(int(c.count), er)
 		}

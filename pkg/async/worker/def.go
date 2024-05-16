@@ -18,14 +18,15 @@ func (m *Worker[J]) run() {
 	switch m.graceful {
 	case true:
 		goo.Go(func() {
-			m.trigger.IterFuncFully(func(element J) {
+			m.trigger.IterFully(func(_ int, element J) error {
 				m.do(element)
+				return nil
 			})
 		})
 
 	default:
 		goo.Go(func() {
-			m.trigger.IterFunc(func(element J) bool {
+			m.trigger.IterOkay(func(_ int, element J) bool {
 				select {
 				case <-m.Done():
 					return false

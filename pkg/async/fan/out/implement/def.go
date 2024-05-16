@@ -1,4 +1,4 @@
-package out
+package implement
 
 import (
 	"github.com/CrazyThursdayV50/gotils/pkg/async/worker"
@@ -15,26 +15,26 @@ type Fan[T any] struct {
 func New[T any](count, buffer int, handler func(t T)) *Fan[T] {
 	var fan Fan[T]
 	fan.in = gchan.Make[T](buffer)
-	closeFuncs := []func(){
-		fan.in.Close,
-	}
+	closeFuncs := slice.From(fan.in.Close)
 
-	slice.Make[struct{}](count, count).IterFuncFully(func(struct{}) {
+	slice.Make[struct{}](count, count).IterFully(func(int, struct{}) error {
 		worker, _ := worker.New(handler)
 		worker.WithGraceful(true)
 		worker.WithTrigger(fan.in)
 		worker.Run()
-		closeFuncs = append(closeFuncs, worker.Stop)
+		closeFuncs.Append(worker.Stop)
+		return nil
 	})
 
 	fan.close = func() {
-		slice.From(closeFuncs).IterFuncFully(func(f func()) {
+		_ = closeFuncs.IterFully(func(_ int, f func()) error {
 			f()
+			return nil
 		})
 	}
 	return &fan
 }
 
-func (f *Fan[T]) In() api.ChanAPI[T] { return f.in }
+func (f *Fan[T]) To() api.ChanAPI[T] { return f.in }
 func (f *Fan[T]) Close()             { f.close() }
 func (f *Fan[T]) Send(t T)           { f.in.Send(t) }

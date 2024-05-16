@@ -89,7 +89,7 @@ func (c *ChanW[E]) Send(e E) {
 	}
 }
 
-func (c *ChanW[E]) ChanW() chan<- E {
+func (c *ChanW[E]) InnerW() chan<- E {
 	if c == nil {
 		return nil
 	}

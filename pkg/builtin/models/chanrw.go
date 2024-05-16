@@ -104,21 +104,21 @@ func (c *ChanRW[E]) Send(e E) {
 	}
 }
 
-func (c *ChanRW[E]) Chan() chan E {
+func (c *ChanRW[E]) Inner() chan E {
 	if c == nil {
 		return nil
 	}
 	return c.c
 }
 
-func (c *ChanRW[E]) ChanR() <-chan E {
+func (c *ChanRW[E]) InnerR() <-chan E {
 	if c == nil {
 		return nil
 	}
 	return c.c
 }
 
-func (c *ChanRW[E]) ChanW() chan<- E {
+func (c *ChanRW[E]) InnerW() chan<- E {
 	if c == nil {
 		return nil
 	}
@@ -193,7 +193,7 @@ func (c *ChanRW[E]) IterError(f func(index int, element E) error) (wrapper.UnWra
 	return nil, nil
 }
 
-func (c *ChanRW[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
+func (c *ChanRW[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
 	if c == nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (c *ChanRW[E]) IterFully(f func(index int, element E) error) (err api.MapAP
 		er := f(int(c.countR), e)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error](0)
+				err = MakeMap[int, error, any](0)
 			}
 			err.Set(int(c.countR), er)
 		}
