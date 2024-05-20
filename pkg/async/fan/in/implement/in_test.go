@@ -11,11 +11,11 @@ import (
 )
 
 func TestIn(t *testing.T) {
-	chans := slice.Collect(slice.Empty(10).Inner(), func(struct{}) chan any {
+	chans := slice.Collect(slice.Empty(10).Unwrap(), func(struct{}) chan any {
 		return make(chan any)
 	})
 
-	from := slice.Collect(chans.Inner(), func(element chan any) api.ChanAPI[any] {
+	from := slice.Collect(chans.Unwrap(), func(element chan any) api.ChanAPI[any] {
 		return gchan.From(element)
 	})
 
@@ -30,7 +30,7 @@ func TestIn(t *testing.T) {
 
 	fan := From[any](func(t any) {
 		fmt.Printf("receive: %v\n", t)
-	}, chans.Inner()...)
+	}, chans.Unwrap()...)
 	defer fan.Close()
 
 	<-make(chan struct{})

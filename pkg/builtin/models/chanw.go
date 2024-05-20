@@ -5,7 +5,10 @@ import (
 	"time"
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
+	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 )
+
+var _ api.ChanAPIW[any] = (*ChanW[any])(nil)
 
 type (
 	ChanWrite[E any] interface {
@@ -89,7 +92,7 @@ func (c *ChanW[E]) Send(e E) {
 	}
 }
 
-func (c *ChanW[E]) InnerW() chan<- E {
+func (c *ChanW[E]) Unwrap() chan<- E {
 	if c == nil {
 		return nil
 	}

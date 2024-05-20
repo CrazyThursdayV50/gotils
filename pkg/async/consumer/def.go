@@ -21,7 +21,7 @@ type Consumer[T any] struct {
 }
 
 func (c *Consumer[T]) Run() {
-	ch := c.ch.Inner()
+	ch := c.ch.Unwrap()
 
 	goo.Goo(func() {
 		for {

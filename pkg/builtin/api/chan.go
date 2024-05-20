@@ -7,6 +7,10 @@ import (
 )
 
 type (
+	chanUnwrapper[C <-chan E | chan<- E | chan E, E any] interface {
+		wrapper.UnWrapper[C]
+	}
+
 	baseCommonChanAPI[E any] interface {
 		Len() int
 		IsEmpty() bool
@@ -14,36 +18,36 @@ type (
 	}
 
 	baseReadWriteChanAPI[E any] interface {
-		Inner() chan E
 		Renew(buffer int)
 		RenewForce(buffer int)
 	}
 
 	baseWriteChanAPI[E any] interface {
-		InnerW() chan<- E
 		Close()
 		Send(element E)
 		SendTimeout(send time.Duration)
 	}
 
 	baseReadChanAPI[E any] interface {
-		InnerR() <-chan E
 		Receive() (wrapper.UnWrapper[E], bool)
 		RecvTimeout(recv time.Duration)
 		Iter[int, E, any]
 	}
 
 	ChanAPIR[E any] interface {
+		chanUnwrapper[<-chan E, E]
 		baseCommonChanAPI[E]
 		baseReadChanAPI[E]
 	}
 
 	ChanAPIW[E any] interface {
+		chanUnwrapper[chan<- E, E]
 		baseCommonChanAPI[E]
 		baseWriteChanAPI[E]
 	}
 
 	ChanAPI[E any] interface {
+		chanUnwrapper[chan E, E]
 		baseCommonChanAPI[E]
 		baseWriteChanAPI[E]
 		baseReadChanAPI[E]

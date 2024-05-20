@@ -16,7 +16,7 @@ type Map[K cmp.Ordered | *T, V any, T any] struct {
 	m map[K]V
 }
 
-func (m *Map[K, V, T]) Inner() map[K]V {
+func (m *Map[K, V, T]) Unwrap() map[K]V {
 	if m == nil {
 		return nil
 	}

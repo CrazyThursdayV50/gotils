@@ -11,6 +11,8 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
+var _ api.ChanAPI[any] = (*ChanRW[any])(nil)
+
 type ChanRW[E any] struct {
 	l           *sync.Mutex
 	done        bool
@@ -104,21 +106,7 @@ func (c *ChanRW[E]) Send(e E) {
 	}
 }
 
-func (c *ChanRW[E]) Inner() chan E {
-	if c == nil {
-		return nil
-	}
-	return c.c
-}
-
-func (c *ChanRW[E]) InnerR() <-chan E {
-	if c == nil {
-		return nil
-	}
-	return c.c
-}
-
-func (c *ChanRW[E]) InnerW() chan<- E {
+func (c *ChanRW[E]) Unwrap() chan E {
 	if c == nil {
 		return nil
 	}

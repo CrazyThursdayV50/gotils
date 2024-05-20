@@ -10,7 +10,7 @@ type Worker[J any] struct {
 	*monitor.Monitor
 	do       func(J)
 	count    int64
-	trigger  api.ChanAPIR[J]
+	trigger  api.Iter[int, J, any]
 	graceful bool
 }
 

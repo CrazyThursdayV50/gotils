@@ -18,7 +18,7 @@ func From[element any, C models.ChanRead[element]](handler func(t element), chan
 		return gchan.FromRead(element)
 	})
 
-	return New(handler, from.Inner()...)
+	return New(handler, from.Unwrap()...)
 }
 
 func New[element any](handler func(t element), from ...api.ChanAPIR[element]) *Fan[element] {

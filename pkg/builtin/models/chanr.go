@@ -10,6 +10,8 @@ import (
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
 )
 
+var _ api.ChanAPIR[any] = (*ChanR[any])(nil)
+
 type (
 	ChanRead[E any] interface {
 		chan E | <-chan E
@@ -54,7 +56,7 @@ func (c *ChanR[E]) Closed() bool {
 	return false
 }
 
-func (c *ChanR[E]) InnerR() <-chan E {
+func (c *ChanR[E]) Unwrap() <-chan E {
 	if c == nil {
 		return nil
 	}

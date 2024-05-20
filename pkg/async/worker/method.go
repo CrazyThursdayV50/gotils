@@ -17,10 +17,10 @@ func (w *Worker[J]) WithGraceful(ok bool) {
 }
 
 func (w *Worker[J]) WithBuffer(buffer int) {
-	w.trigger = gchan.Make[J](buffer)
+	w.trigger = gchan.MakeRead[J](buffer)
 }
 
-func (w *Worker[J]) WithTrigger(trigger api.ChanAPIR[J]) {
+func (w *Worker[J]) WithTrigger(trigger api.Iter[int, J, any]) {
 	w.trigger = trigger
 }
 

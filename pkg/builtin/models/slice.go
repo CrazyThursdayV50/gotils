@@ -13,7 +13,7 @@ type Slice[E any] struct {
 	lessFunc func(E, E) bool
 }
 
-func (s *Slice[E]) Inner() []E {
+func (s *Slice[E]) Unwrap() []E {
 	if s == nil {
 		return nil
 	}
@@ -223,4 +223,12 @@ func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[i
 		}
 	}
 	return
+}
+
+func (s *Slice[E]) Iter() api.Iter[int, E, any] {
+	return s
+}
+
+func (s *Slice[E]) IterMut() api.Iter[int, E, any] {
+	return s
 }

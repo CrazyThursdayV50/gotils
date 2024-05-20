@@ -2,6 +2,8 @@ package api
 
 import (
 	"cmp"
+
+	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 )
 
 type MapAPI[K cmp.Ordered | *T, V any, T any] interface {
@@ -11,9 +13,9 @@ type MapAPI[K cmp.Ordered | *T, V any, T any] interface {
 	Del(k K)
 	Keys() SliceAPI[K]
 	Values() SliceAPI[V]
-	Inner() map[K]V
 	Clear()
 
+	wrapper.UnWrapper[map[K]V]
 	GetSeter[K, V]
 	Iter[K, V, T]
 	IterMut[K, V, T]

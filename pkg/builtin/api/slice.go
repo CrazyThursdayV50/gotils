@@ -9,11 +9,11 @@ type SliceAPI[E any] interface {
 	Less(i int, j int) bool
 	WithLessFunc(f func(a, b E) bool)
 	Append(elements ...E)
-	Inner() []E
 	Cut(from, to int) []E
 	Index(element E, equal func(E, E) bool) wrapper.UnWrapper[int]
 	Clear()
 
+	wrapper.UnWrapper[[]E]
 	GetSeter[int, E]
 	Iter[int, E, any]
 	IterMut[int, E, any]
