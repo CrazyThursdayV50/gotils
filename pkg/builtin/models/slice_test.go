@@ -22,4 +22,5 @@ func TestSlice(t *testing.T) {
 
 	slice.Clear()
 	assert.Equal(t, []int{0, 0, 0}, slice.Unwrap())
+
 }
