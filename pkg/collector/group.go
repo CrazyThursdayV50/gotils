@@ -31,6 +31,38 @@ func GroupP[E any, K any, V any](sli []E, mapper handlers.CollectorKV[E, *K, V])
 	return
 }
 
+func GroupValid[E any, K cmp.Ordered, V any](sli []E, mapper handlers.CollectorKVOkay[E, K, V]) (m map[K][]V) {
+	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
+		key, val, ok := mapper(v)
+		if !ok {
+			return true
+		}
+
+		if m == nil {
+			m = make(map[K][]V)
+		}
+
+		m[key] = append(m[key], val)
+		return true
+	})
+	return
+}
+
+func GroupValidP[E any, K any, V any](sli []E, mapper handlers.CollectorKVOkay[E, *K, V]) (m map[*K][]V) {
+	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
+		key, val, ok := mapper(v)
+		if !ok {
+			return true
+		}
+		if m == nil {
+			m = make(map[*K][]V)
+		}
+		m[key] = append(m[key], val)
+		return true
+	})
+	return
+}
+
 func GroupOkay[E any, K cmp.Ordered, V any](sli []E, mapper handlers.CollectorKVOkay[E, K, V]) (m map[K][]V, ok bool) {
 	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
 		var key K

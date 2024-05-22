@@ -31,6 +31,38 @@ func MapP[E any, K any, V any](sli []E, mapper handlers.CollectorKV[E, *K, V]) (
 	return
 }
 
+func MapValid[E any, K cmp.Ordered, V any](sli []E, mapper handlers.CollectorKVOkay[E, K, V]) (m map[K]V) {
+	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
+		key, val, ok := mapper(v)
+		if !ok {
+			return true
+		}
+
+		if m == nil {
+			m = make(map[K]V)
+		}
+
+		m[key] = val
+		return true
+	})
+	return
+}
+
+func MapValidP[E any, K any, V any](sli []E, mapper handlers.CollectorKVOkay[E, *K, V]) (m map[*K]V) {
+	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
+		key, val, ok := mapper(v)
+		if !ok {
+			return false
+		}
+		if m == nil {
+			m = make(map[*K]V)
+		}
+		m[key] = val
+		return true
+	})
+	return
+}
+
 func MapOkay[E any, K cmp.Ordered, V any](sli []E, mapper handlers.CollectorKVOkay[E, K, V]) (m map[K]V, ok bool) {
 	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
 		var key K

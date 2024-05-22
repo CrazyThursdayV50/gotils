@@ -25,6 +25,18 @@ func SliceError[E any, T any](sli []E, collector handlers.CollectorError[E, T]) 
 	return
 }
 
+func SliceValid[E any, T any](sli []E, collector handlers.CollectorOkay[E, T]) (list []T) {
+	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
+		t, ok := collector(v)
+		if !ok {
+			return true
+		}
+		list = append(list, t)
+		return true
+	})
+	return
+}
+
 func SliceOkay[E any, T any](sli []E, collector handlers.CollectorOkay[E, T]) (list []T, ok bool) {
 	_ = slice.From(sli...).IterOkay(func(_ int, v E) bool {
 		var t T
