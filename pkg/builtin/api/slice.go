@@ -10,7 +10,8 @@ type SliceAPI[E any] interface {
 	WithLessFunc(f func(a, b E) bool)
 	Append(elements ...E)
 	Cut(from, to int) []E
-	Index(element E, equal func(E, E) bool) wrapper.UnWrapper[int]
+	Index(element E, equal func(E, E) bool) SliceAPI[int]
+	Del(index int)
 	Clear()
 
 	wrapper.UnWrapper[[]E]
