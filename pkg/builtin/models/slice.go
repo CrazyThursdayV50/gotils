@@ -20,76 +20,6 @@ func (s *Slice[E]) Unwrap() []E {
 	return s.slice
 }
 
-func (s *Slice[E]) Cut(from, to int) []E {
-	if s == nil {
-		return nil
-	}
-
-	if from > s.Len()-1 || from < 0 {
-		return nil
-	}
-
-	if to > s.Len()-1 || to < 0 {
-		return nil
-	}
-
-	if !(from < to) {
-		return nil
-	}
-
-	if from == 0 && to == s.Len() {
-		return s.Unwrap()
-	}
-
-	if from == 0 {
-		return s.Unwrap()[:to]
-	}
-
-	if to == s.Len() {
-		return s.Unwrap()[from:]
-	}
-
-	return s.Unwrap()[from:to]
-}
-
-func (s *Slice[E]) Index(element E, equal func(E, E) bool) (res api.SliceAPI[int]) {
-	if s == nil {
-		return nil
-	}
-	if equal == nil {
-		return nil
-	}
-
-	s.IterOkay(func(i int, e E) bool {
-		if equal(e, element) {
-			if res == nil {
-				res = MakeSlice[int](0, 0)
-			}
-			res.Append(i)
-		}
-		return true
-	})
-
-	return
-}
-
-func (s *Slice[E]) Del(index int) {
-	if index > s.Len()-1 {
-		return
-	}
-	if index < 0 {
-		return
-	}
-	switch index {
-	case 0:
-		s.slice = s.Unwrap()[1:]
-	case s.Len() - 1:
-		s.slice = s.Unwrap()[:s.Len()-1]
-	default:
-		s.slice = append(s.Unwrap()[:index], s.Unwrap()[index+1:]...)
-	}
-}
-
 func FromSlice[E any](slice ...E) *Slice[E] {
 	return &Slice[E]{
 		slice: slice,
@@ -260,21 +190,4 @@ func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[i
 		}
 	}
 	return
-}
-
-func (s *Slice[E]) Iter() api.Iter[int, E, any] {
-	return s
-}
-
-func (s *Slice[E]) IterMut() api.Iter[int, E, any] {
-	return s
-}
-
-func (s *Slice[E]) Equal(x api.SliceAPI[E], equal func(a, b E) bool) bool {
-	return x.IterOkay(func(_ int, v E) bool {
-		index := s.IterOkay(func(_ int, element E) bool {
-			return !equal(v, element)
-		})
-		return index.Unwrap() != s.Len()
-	}).Unwrap() == x.Len()
 }
