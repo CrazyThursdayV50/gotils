@@ -11,6 +11,7 @@ func New(opts ...Option) *Cron {
 	var c Cron
 	opts = append(defaultOptions(), opts...)
 	_ = slice.From(opts...).IterFully(func(_ int, opt Option) error { opt(&c); return nil })
+	c.init()
 	return &c
 }
 

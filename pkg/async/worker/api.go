@@ -15,5 +15,7 @@ func New[J any](do func(job J)) (*Worker[J], func(J)) {
 	trigger := gchan.Make[J](0)
 	m.WithContext(context.TODO())
 	m.WithTrigger(trigger)
-	return &m, func(j J) { trigger.Send(j) }
+	return &m, func(j J) {
+		trigger.Send(j)
+	}
 }

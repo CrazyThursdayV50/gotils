@@ -44,7 +44,6 @@ func (c *Cron) init() {
 	c.worker, c.delivery = worker.New(func(time.Time) { c.job() })
 	c.worker.WithContext(c.ctx)
 	c.worker.WithGraceful(false)
-	c.worker.WithBuffer(0)
 
 	if c.runAfter < 0 {
 		return

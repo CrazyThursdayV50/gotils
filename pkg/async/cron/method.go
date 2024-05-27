@@ -1,7 +1,6 @@
 package cron
 
 func (c *Cron) Run() {
-	c.init()
 	c.worker.Run()
 	c.runOnStart()
 	if c.waitAfterRun {

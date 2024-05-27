@@ -5,7 +5,6 @@ import (
 
 	"github.com/CrazyThursdayV50/gotils/pkg/async/monitor"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
-	gchan "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/chan"
 )
 
 func (w *Worker[J]) WithContext(ctx context.Context) {
@@ -14,10 +13,6 @@ func (w *Worker[J]) WithContext(ctx context.Context) {
 
 func (w *Worker[J]) WithGraceful(ok bool) {
 	w.graceful = ok
-}
-
-func (w *Worker[J]) WithBuffer(buffer int) {
-	w.trigger = gchan.MakeRead[J](buffer)
 }
 
 func (w *Worker[J]) WithTrigger(trigger api.Iter[int, J, any]) {
