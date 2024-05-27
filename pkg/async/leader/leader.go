@@ -33,3 +33,7 @@ func New[J any](ctx context.Context, sendTimeout, recvTimeout time.Duration) *Le
 	bucket.deliveryChan.RecvTimeout(recvTimeout)
 	return &bucket
 }
+
+func(b *Leader[J]) Stop() {
+	b.deliveryChan.Close()
+}

@@ -7,6 +7,7 @@ import (
 	gchan "github.com/CrazyThursdayV50/gotils/pkg/builtin/api/chan"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api/slice"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/models"
+	"github.com/CrazyThursdayV50/gotils/pkg/collector"
 )
 
 type Fan[T any] struct {
@@ -14,11 +15,11 @@ type Fan[T any] struct {
 }
 
 func From[element any, C models.ChanRead[element]](handler func(t element), chans ...C) *Fan[element] {
-	from := slice.Collect(chans, func(element C) api.ChanAPIR[element] {
+	from := collector.Slice(chans, func(element C) api.ChanAPIR[element] {
 		return gchan.FromRead(element)
 	})
 
-	return New(handler, from.Unwrap()...)
+	return New(handler, from...)
 }
 
 func New[element any](handler func(t element), from ...api.ChanAPIR[element]) *Fan[element] {
