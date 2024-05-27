@@ -41,6 +41,9 @@ func timerDo(duration time.Duration, done <-chan struct{}, do func()) {
 }
 
 func (c *Cron) init() {
+	if c.tick < 1 {
+		c.tick = time.Second
+	}
 	c.worker, c.delivery = worker.New(func(time.Time) { c.job() })
 	c.worker.WithContext(c.ctx)
 	c.worker.WithGraceful(false)
