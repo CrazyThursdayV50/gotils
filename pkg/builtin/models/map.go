@@ -79,7 +79,7 @@ func (m *Map[K, V, T]) AddSoft(k K, v V) {
 
 func (m *Map[K, V, T]) Get(k K) wrapper.UnWrapper[V] {
 	if m == nil {
-		return nil
+		return wrap.Nil[V]()
 	}
 	m.l.RLock()
 	defer m.l.RUnlock()
@@ -138,7 +138,7 @@ func (m *Map[K, V, T]) Clear() {
 
 func (m *Map[K, V, T]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
 	if m == nil {
-		return nil
+		return wrap.Nil[K]()
 	}
 	m.l.RLock()
 	defer m.l.RUnlock()
@@ -153,7 +153,7 @@ func (m *Map[K, V, T]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
 
 func (m *Map[K, V, T]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], error) {
 	if m == nil {
-		return nil, nil
+		return wrap.Nil[K](), nil
 	}
 	m.l.RLock()
 	defer m.l.RUnlock()
@@ -186,7 +186,7 @@ func (m *Map[K, V, T]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, erro
 
 func (m *Map[K, V, T]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) bool) wrapper.UnWrapper[K] {
 	if m == nil {
-		return nil
+		return wrap.Nil[K]()
 	}
 
 	keys := m.Keys()
@@ -203,7 +203,7 @@ func (m *Map[K, V, T]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) boo
 
 func (m *Map[K, V, T]) IterMutError(f func(k K, v V, self api.GetSeter[K, V]) error) (wrapper.UnWrapper[K], error) {
 	if m == nil {
-		return nil, nil
+		return wrap.Nil[K](), nil
 	}
 
 	keys := m.Keys()

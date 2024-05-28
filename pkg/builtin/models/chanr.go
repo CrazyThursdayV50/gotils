@@ -72,7 +72,7 @@ func (c *ChanR[E]) RecvTimeout(recv time.Duration) {
 
 func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
 	if c == nil {
-		return nil, false
+		return wrap.Nil[E](), false
 	}
 
 	if c.recvTimeout <= 0 {
@@ -98,7 +98,7 @@ func (c *ChanR[E]) Receive() (wrapper.UnWrapper[E], bool) {
 
 func (c *ChanR[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper[int] {
 	if c == nil {
-		return nil
+		return wrap.Nil[int]()
 	}
 
 	for e := range c.c {
@@ -114,7 +114,7 @@ func (c *ChanR[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper
 
 func (c *ChanR[E]) IterError(f func(index int, element E) error) (wrapper.UnWrapper[int], error) {
 	if c == nil {
-		return nil, nil
+		return wrap.Nil[int](), nil
 	}
 
 	for e := range c.c {
