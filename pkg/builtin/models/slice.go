@@ -95,7 +95,7 @@ func (s *Slice[E]) Get(index int) wrapper.UnWrapper[E] {
 		return wrap.Nil[E]()
 	}
 	if s.Len() < index+1 {
-		return nil
+		return wrap.Nil[E]()
 	}
 	return wrap.Wrap(s.Unwrap()[index])
 }

@@ -85,7 +85,7 @@ func (m *Map[K, V, T]) Get(k K) wrapper.UnWrapper[V] {
 	defer m.l.RUnlock()
 	v, ok := m.m[k]
 	if !ok {
-		return nil
+		return wrap.Nil[V]()
 	}
 	return wrap.Wrap(v)
 }
@@ -148,7 +148,7 @@ func (m *Map[K, V, T]) IterOkay(f func(k K, v V) bool) wrapper.UnWrapper[K] {
 			return wrap.Wrap(k)
 		}
 	}
-	return nil
+	return wrap.Nil[K]()
 }
 
 func (m *Map[K, V, T]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], error) {
@@ -163,7 +163,7 @@ func (m *Map[K, V, T]) IterError(f func(k K, v V) error) (wrapper.UnWrapper[K], 
 			return wrap.Wrap(k), err
 		}
 	}
-	return nil, nil
+	return wrap.Nil[K](), nil
 }
 
 func (m *Map[K, V, T]) IterFully(f func(k K, v V) error) (err api.MapAPI[K, error, T]) {
@@ -195,7 +195,7 @@ func (m *Map[K, V, T]) IterMutOkay(f func(k K, v V, self api.GetSeter[K, V]) boo
 	})
 
 	if index == nil {
-		return nil
+		return wrap.Nil[K]()
 	}
 
 	return keys.Get(index.Unwrap())
@@ -212,7 +212,7 @@ func (m *Map[K, V, T]) IterMutError(f func(k K, v V, self api.GetSeter[K, V]) er
 	})
 
 	if err == nil {
-		return nil, nil
+		return wrap.Nil[K](), nil
 	}
 
 	return keys.Get(index.Unwrap()), err

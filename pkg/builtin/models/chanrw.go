@@ -80,7 +80,7 @@ func (c *ChanRW[E]) Receive() (wrapper.UnWrapper[E], bool) {
 		return wrap.Wrap(element), true
 
 	case <-timer.C:
-		return nil, false
+		return wrap.Nil[E](), false
 	}
 }
 
@@ -162,7 +162,7 @@ func (c *ChanRW[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrappe
 		}
 	}
 
-	return nil
+	return wrap.Nil[int]()
 }
 
 func (c *ChanRW[E]) IterError(f func(index int, element E) error) (wrapper.UnWrapper[int], error) {
@@ -178,7 +178,7 @@ func (c *ChanRW[E]) IterError(f func(index int, element E) error) (wrapper.UnWra
 		}
 	}
 
-	return nil, nil
+	return wrap.Nil[int](), nil
 }
 
 func (c *ChanRW[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
