@@ -10,6 +10,7 @@ type SliceAPI[E any] interface {
 	WithLessFunc(f func(a, b E) bool)
 	Append(elements ...E)
 	Clear()
+	Chunk(len int) <-chan []E
 	// Clone() []E
 	// Compact(f func(a, b E) bool)
 	// Contains(f func(element E) bool) bool
