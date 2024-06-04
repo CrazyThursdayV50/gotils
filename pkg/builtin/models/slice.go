@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/CrazyThursdayV50/gotils/pkg/async/goo"
 	"github.com/CrazyThursdayV50/gotils/pkg/builtin/api"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper"
 	"github.com/CrazyThursdayV50/gotils/pkg/wrapper/wrap"
@@ -105,6 +106,30 @@ func (s *Slice[E]) Clear() {
 		return
 	}
 	clear(s.Unwrap())
+}
+
+func (s *Slice[E]) Chunk(len int) <-chan []E {
+	var ch = FromChan(make(chan []E))
+	if s.Len() == 0 || len == 0 {
+		goo.Go(ch.Close)
+		return ch.Unwrap()
+	}
+
+	var count = (s.Len()-1)/len + 1
+	goo.Go(func() {
+		defer ch.Close()
+		for i := range count {
+			from := i * len
+			end := from + len
+			if end > s.Len() {
+				end = s.Len()
+			}
+
+			ch.Send(s.slice[from:end])
+		}
+	})
+
+	return ch.Unwrap()
 }
 
 func (s *Slice[E]) IterOkay(f func(index int, element E) bool) wrapper.UnWrapper[int] {

@@ -83,6 +83,7 @@ func (c *ChanW[E]) Send(e E) {
 
 	if c.sendTimeout <= 0 {
 		c.c <- e
+		return
 	}
 
 	timer := time.NewTimer(c.sendTimeout)
