@@ -21,6 +21,6 @@ type SliceAPI[E any] interface {
 
 	wrapper.UnWrapper[[]E]
 	GetSeter[int, E]
-	Iter[int, E, any]
-	IterMut[int, E, any]
+	Iter[int, E]
+	IterMut[int, E]
 }

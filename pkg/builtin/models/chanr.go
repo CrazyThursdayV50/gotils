@@ -128,7 +128,7 @@ func (c *ChanR[E]) IterError(f func(index int, element E) error) (wrapper.UnWrap
 	return wrap.Nil[int](), nil
 }
 
-func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
+func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
 	if c == nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (c *ChanR[E]) IterFully(f func(index int, element E) error) (err api.MapAPI
 		er := f(int(c.count), e)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error, any](0)
+				err = MakeMap[int, error](0)
 			}
 			err.Set(int(c.count), er)
 		}

@@ -31,7 +31,7 @@ type (
 	baseReadChanAPI[E any] interface {
 		Receive() (wrapper.UnWrapper[E], bool)
 		RecvTimeout(recv time.Duration)
-		Iter[int, E, any]
+		Iter[int, E]
 	}
 
 	ChanAPIR[E any] interface {

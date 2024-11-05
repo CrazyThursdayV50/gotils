@@ -158,7 +158,7 @@ func (s *Slice[E]) IterError(f func(index int, element E) error) (wrapper.UnWrap
 	return wrap.Wrap(s.Len()), nil
 }
 
-func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error, any]) {
+func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI[int, error]) {
 	if s == nil {
 		return
 	}
@@ -167,7 +167,7 @@ func (s *Slice[E]) IterFully(f func(index int, element E) error) (err api.MapAPI
 		er := f(i, e)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error, any](0)
+				err = MakeMap[int, error](0)
 			}
 			err.Set(i, er)
 		}
@@ -201,7 +201,7 @@ func (s *Slice[E]) IterMutError(f func(index int, element E, self api.GetSeter[i
 	return wrap.Wrap(s.Len()), nil
 }
 
-func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[int, E]) error) (err api.MapAPI[int, error, any]) {
+func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[int, E]) error) (err api.MapAPI[int, error]) {
 	if s == nil {
 		return
 	}
@@ -209,7 +209,7 @@ func (s *Slice[E]) IterMutFully(f func(index int, element E, self api.GetSeter[i
 		er := f(i, e, s)
 		if er != nil {
 			if err == nil {
-				err = MakeMap[int, error, any](0)
+				err = MakeMap[int, error](0)
 			}
 			err.Set(i, er)
 		}
