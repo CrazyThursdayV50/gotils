@@ -25,7 +25,7 @@ func try(f func()) (err error) {
 
 func Go(f func()) {
 	go func() {
-		try(f)
+		_ = try(f)
 	}()
 }
 

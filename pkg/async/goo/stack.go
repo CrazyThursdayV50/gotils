@@ -21,7 +21,7 @@ func locatePanic(stack []byte) []string {
 	}
 
 	for i, stack := range stacks {
-		if strings.Contains(stack, "runtime/panic.go:770 +0x124") && i < len(stacks)-1 {
+		if strings.Contains(stack, "src/runtime/panic.go:") && i < len(stacks)-1 {
 			return stacks[i+1:]
 		}
 	}
